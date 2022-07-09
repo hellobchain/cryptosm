@@ -16,6 +16,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
+	"github.com/wsw365904/cryptosm/sm4"
 	"io"
 	"strings"
 )
@@ -30,6 +31,7 @@ const (
 	PEMCipherAES128
 	PEMCipherAES192
 	PEMCipherAES256
+	PEMCipherSM4
 )
 
 // rfc1423Algo holds a method for enciphering a PEM block.
@@ -73,6 +75,12 @@ var rfc1423Algos = []rfc1423Algo{{
 	cipherFunc: aes.NewCipher,
 	keySize:    32,
 	blockSize:  aes.BlockSize,
+}, {
+	cipher:     PEMCipherSM4,
+	name:       "SM4-256-CBC",
+	cipherFunc: sm4.NewCipher,
+	keySize:    16,
+	blockSize:  sm4.BlockSize,
 },
 }
 
