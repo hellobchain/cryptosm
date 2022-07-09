@@ -206,7 +206,7 @@ func signatureSchemesForCertificate(version uint16, cert *Certificate) []Signatu
 			sigAlgs = []SignatureScheme{ECDSAWithP384AndSHA384}
 		case elliptic.P521():
 			sigAlgs = []SignatureScheme{ECDSAWithP521AndSHA512}
-		case ecdsa.P256Sm2():
+		case ecdsa.SM2():
 			sigAlgs = []SignatureScheme{SM2WithP256AndSM3}
 		default:
 			return nil
@@ -283,7 +283,7 @@ func unsupportedCertificateError(cert *Certificate) error {
 		case elliptic.P256():
 		case elliptic.P384():
 		case elliptic.P521():
-		case ecdsa.P256Sm2():
+		case ecdsa.SM2():
 		default:
 			return fmt.Errorf("tls: unsupported certificate curve (%s)", pub.Curve.Params().Name)
 		}

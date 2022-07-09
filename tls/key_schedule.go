@@ -146,7 +146,7 @@ func curveForCurveID(id CurveID) (elliptic.Curve, bool) {
 	case CurveP521:
 		return elliptic.P521(), true
 	case CurveSm2P256:
-		return ecdsa.P256Sm2(), true
+		return ecdsa.SM2(), true
 
 	default:
 		return nil, false

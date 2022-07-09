@@ -76,7 +76,7 @@ func main() {
 	case "P521":
 		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	case "P256-SM2":
-		priv, err = ecdsa.GenerateKey(ecdsa.P256Sm2(), rand.Reader)
+		priv, err = ecdsa.GenerateKey(ecdsa.SM2(), rand.Reader)
 	default:
 		log.Fatalf("Unrecognized elliptic curve: %q", *ecdsaCurve)
 	}
