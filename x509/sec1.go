@@ -5,11 +5,11 @@
 package x509
 
 import (
-	"crypto/ecdsa"
 	"crypto/elliptic"
 	"encoding/asn1"
 	"errors"
 	"fmt"
+	"github.com/wsw365904/cryptosm/ecdsa"
 	"math/big"
 )
 

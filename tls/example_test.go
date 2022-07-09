@@ -5,11 +5,11 @@
 package tls_test
 
 import (
-	"crypto/tls"
-	"crypto/x509"
+	"github.com/wsw365904/cryptosm/http"
+	"github.com/wsw365904/cryptosm/http/httptest"
+	"github.com/wsw365904/cryptosm/tls"
+	"github.com/wsw365904/cryptosm/x509"
 	"log"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"time"
 )
