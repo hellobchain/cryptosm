@@ -8,8 +8,8 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
-	"cryptosm/ecdsa"
 	"fmt"
+	"github.com/wsw365904/cryptosm/ecdsa"
 )
 
 func Example() {

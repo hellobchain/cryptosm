@@ -10,10 +10,10 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
-	"cryptosm"
-	"cryptosm/sm3"
 	"errors"
 	"fmt"
+	"github.com/wsw365904/cryptosm"
+	"github.com/wsw365904/cryptosm/sm3"
 	"hash"
 )
 

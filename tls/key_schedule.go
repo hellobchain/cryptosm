@@ -7,8 +7,8 @@ package tls
 import (
 	"crypto/elliptic"
 	"crypto/hmac"
-	"cryptosm/ecdsa"
 	"errors"
+	"github.com/wsw365904/cryptosm/ecdsa"
 	"hash"
 	"io"
 	"math/big"

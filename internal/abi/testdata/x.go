@@ -4,7 +4,7 @@
 
 package x
 
-import "internal/abi"
+import "github.com/wsw365904/cryptosm/internal/abi"
 
 func Fn0() // defined in assembly
 

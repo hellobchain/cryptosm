@@ -8,8 +8,8 @@ import (
 	"crypto"
 	"crypto/elliptic"
 	"crypto/rand"
-	"cryptosm/ecdsa"
-	"cryptosm/x509"
+	"github.com/wsw365904/cryptosm/ecdsa"
+	"github.com/wsw365904/cryptosm/x509"
 	"testing"
 )
 

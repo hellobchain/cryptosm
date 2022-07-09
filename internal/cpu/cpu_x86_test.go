@@ -8,7 +8,7 @@
 package cpu_test
 
 import (
-	. "internal/cpu"
+	. "github.com/wsw365904/cryptosm/internal/cpu"
 	"os"
 	"runtime"
 	"testing"

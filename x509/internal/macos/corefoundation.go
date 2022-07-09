@@ -11,8 +11,8 @@
 package macOS
 
 import (
-	"cryptosm/internal/abi"
 	"errors"
+	"github.com/wsw365904/cryptosm/internal/abi"
 	"reflect"
 	"runtime"
 	"unsafe"

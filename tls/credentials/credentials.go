@@ -16,10 +16,10 @@ limitations under the License.
 package credentials
 
 import (
-	"cryptosm/tls"
-	"cryptosm/x509"
 	"errors"
 	"fmt"
+	"github.com/wsw365904/cryptosm/tls"
+	"github.com/wsw365904/cryptosm/x509"
 	"io/ioutil"
 	"net"
 	"strings"

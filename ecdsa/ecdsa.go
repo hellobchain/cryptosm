@@ -32,8 +32,8 @@ import (
 	"crypto/cipher"
 	"crypto/elliptic"
 	"crypto/sha512"
-	"cryptosm/internal/randutil"
 	"errors"
+	"github.com/wsw365904/cryptosm/internal/randutil"
 	"io"
 	"math/big"
 

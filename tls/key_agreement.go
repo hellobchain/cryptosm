@@ -9,11 +9,11 @@ import (
 	"crypto/md5"
 	"crypto/rsa"
 	"crypto/sha1"
-	"cryptosm"
-	"cryptosm/sm3"
-	"cryptosm/x509"
 	"errors"
 	"fmt"
+	"github.com/wsw365904/cryptosm"
+	"github.com/wsw365904/cryptosm/sm3"
+	"github.com/wsw365904/cryptosm/x509"
 	"io"
 )
 

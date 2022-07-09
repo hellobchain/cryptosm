@@ -10,7 +10,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
-	"cryptosm/sm3"
+	"github.com/wsw365904/cryptosm/sm3"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"
 	"golang.org/x/crypto/ripemd160"

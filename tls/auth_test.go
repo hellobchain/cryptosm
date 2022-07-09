@@ -5,8 +5,7 @@
 package tls
 
 import (
-	"crypto"
-	"cryptosm"
+	"github.com/wsw365904/cryptosm"
 	"testing"
 )
 
@@ -129,7 +128,7 @@ func TestLegacyTypeAndHash(t *testing.T) {
 	if expectedSigType := signaturePKCS1v15; expectedSigType != sigType {
 		t.Errorf("RSA: expected signature type %#x, got %#x", expectedSigType, sigType)
 	}
-	if expectedHashFunc := crypto.MD5SHA1; expectedHashFunc != hashFunc {
+	if expectedHashFunc := cryptosm.MD5SHA1; expectedHashFunc != hashFunc {
 		t.Errorf("RSA: expected hash %#x, got %#x", expectedHashFunc, hashFunc)
 	}
 
@@ -140,7 +139,7 @@ func TestLegacyTypeAndHash(t *testing.T) {
 	if expectedSigType := signatureECDSA; expectedSigType != sigType {
 		t.Errorf("ECDSA: expected signature type %#x, got %#x", expectedSigType, sigType)
 	}
-	if expectedHashFunc := crypto.SHA1; expectedHashFunc != hashFunc {
+	if expectedHashFunc := cryptosm.SHA1; expectedHashFunc != hashFunc {
 		t.Errorf("ECDSA: expected hash %#x, got %#x", expectedHashFunc, hashFunc)
 	}
 

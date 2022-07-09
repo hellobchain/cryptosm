@@ -1,4 +1,4 @@
-module cryptosm
+module github.com/wsw365904/cryptosm
 
 go 1.14
 

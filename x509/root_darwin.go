@@ -9,8 +9,8 @@ package x509
 
 import (
 	"bytes"
-	macOS "cryptosm/x509/internal/macos"
 	"fmt"
+	macOS "github.com/wsw365904/cryptosm/x509/internal/macos"
 	"os"
 	"strings"
 )

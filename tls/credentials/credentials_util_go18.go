@@ -15,7 +15,7 @@ limitations under the License.
 
 package credentials
 
-import "cryptosm/tls"
+import "github.com/wsw365904/cryptosm/tls"
 
 // cloneTLSConfig returns a shallow clone of the exported
 // fields of cfg, ignoring the unexported sync.Once, which

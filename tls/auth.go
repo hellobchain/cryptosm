@@ -10,10 +10,10 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
-	"cryptosm"
-	"cryptosm/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/wsw365904/cryptosm"
+	"github.com/wsw365904/cryptosm/ecdsa"
 	"hash"
 	"io"
 )

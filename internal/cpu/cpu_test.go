@@ -5,8 +5,8 @@
 package cpu_test
 
 import (
-	. "internal/cpu"
-	"internal/testenv"
+	. "github.com/wsw365904/cryptosm/internal/cpu"
+	"github.com/wsw365904/cryptosm/internal/testenv"
 	"os"
 	"os/exec"
 	"runtime"

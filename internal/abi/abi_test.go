@@ -5,8 +5,8 @@
 package abi_test
 
 import (
-	"internal/abi"
-	"internal/testenv"
+	"github.com/wsw365904/cryptosm/internal/abi"
+	"github.com/wsw365904/cryptosm/internal/testenv"
 	"os/exec"
 	"path/filepath"
 	"strings"
