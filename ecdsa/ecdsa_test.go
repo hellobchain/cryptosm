@@ -13,6 +13,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
+	"github.com/wsw365904/cryptosm/sm3"
 	"hash"
 	"io"
 	"math/big"
@@ -30,6 +31,7 @@ func testAllCurves(t *testing.T, f func(*testing.T, elliptic.Curve)) {
 		{"P224", elliptic.P224()},
 		{"P384", elliptic.P384()},
 		{"P521", elliptic.P521()},
+		{SM2CurveName, SM2()},
 	}
 	if testing.Short() {
 		tests = tests[:1]
@@ -230,6 +232,8 @@ func TestVectors(t *testing.T) {
 				pub.Curve = elliptic.P384()
 			case "P-521":
 				pub.Curve = elliptic.P521()
+			case SM2CurveName:
+				pub.Curve = SM2()
 			default:
 				pub.Curve = nil
 			}
@@ -245,6 +249,8 @@ func TestVectors(t *testing.T) {
 				h = sha512.New384()
 			case "SHA-512":
 				h = sha512.New()
+			case "SM3":
+				h = sm3.New()
 			default:
 				h = nil
 			}
@@ -336,6 +342,7 @@ func benchmarkAllCurves(t *testing.B, f func(*testing.B, elliptic.Curve)) {
 		{"P224", elliptic.P224()},
 		{"P384", elliptic.P384()},
 		{"P521", elliptic.P521()},
+		{SM2CurveName, SM2()},
 	}
 	for _, test := range tests {
 		curve := test.curve

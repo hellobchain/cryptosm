@@ -1,3 +1,6 @@
+//go:build !amd64
+// +build !amd64
+
 /*
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -58,7 +61,7 @@ func initP256Sm2() {
 }
 
 // 初始化SM2系统参数 只执行一次
-func P256Sm2() elliptic.Curve {
+func SM2() elliptic.Curve {
 	initonce.Do(initP256Sm2)
 	return sm2P256
 }
