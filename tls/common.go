@@ -1191,6 +1191,8 @@ func (chi *ClientHelloInfo) SupportsCertificate(c *Certificate) error {
 				curve = CurveP384
 			case elliptic.P521():
 				curve = CurveP521
+			case ecdsa.SM2():
+				curve = CurveSm2P256
 			default:
 				return supportsRSAFallback(unsupportedCertificateError(c))
 			}
@@ -1222,10 +1224,10 @@ func (chi *ClientHelloInfo) SupportsCertificate(c *Certificate) error {
 	// this certificate. Cipher suite selection will then apply the logic in
 	// reverse to pick it. See also serverHandshakeState.cipherSuiteOk.
 	cipherSuite := selectCipherSuite(chi.CipherSuites, config.cipherSuites(), func(c *cipherSuite) bool {
-		if c.flags&suiteECDHE == 0 {
+		if c.flags&suiteECDHE == 0 && c.flags&suiteSM2E == 0 {
 			return false
 		}
-		if c.flags&suiteECSign != 0 {
+		if c.flags&suiteECSign != 0 || c.flags&suiteSM2 != 0 {
 			if !ecdsaCipherSuite {
 				return false
 			}
