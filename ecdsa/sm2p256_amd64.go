@@ -16,8 +16,6 @@ import (
 type (
 	sm2Curve struct {
 		*elliptic.CurveParams
-		defaultZaBeforeByte []byte
-		zaBeforeByte        []byte
 	}
 
 	sm2Point struct {
@@ -26,9 +24,11 @@ type (
 )
 
 var (
-	sm2P256           sm2Curve
-	sm2Precomputed    *[43][32 * 8]uint64
-	sm2precomputeOnce sync.Once
+	sm2P256             sm2Curve
+	sm2Precomputed      *[43][32 * 8]uint64
+	sm2precomputeOnce   sync.Once
+	defaultZaBeforeByte []byte
+	zaBeforeByte        []byte
 )
 
 const (
@@ -43,8 +43,8 @@ func initSM2() {
 	sm2P256.Gx, _ = new(big.Int).SetString("32C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7", 16)
 	sm2P256.Gy, _ = new(big.Int).SetString("BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0", 16)
 	sm2P256.BitSize = 256
-	sm2P256.zaBeforeByte = getZBefore(nil)
-	sm2P256.defaultZaBeforeByte = getZBefore([]byte(defaultUid))
+	zaBeforeByte = getZBefore(nil)
+	defaultZaBeforeByte = getZBefore([]byte(defaultUid))
 	return
 }
 
@@ -110,7 +110,7 @@ func getZ(pub *PublicKey, uid []byte) ([]byte, error) {
 	uidLen := len(uid)
 	var zBeforeByte []byte
 	if uidLen == 0 {
-		zBeforeByte = sm2P256.defaultZaBeforeByte
+		zBeforeByte = defaultZaBeforeByte
 	} else if uidLen >= 8192 {
 		return []byte{}, errors.New("SM2: uid too large")
 	} else {
@@ -119,7 +119,7 @@ func getZ(pub *PublicKey, uid []byte) ([]byte, error) {
 		zBeforeByteTmp := make([][]byte, 3)
 		zBeforeByteTmp[0] = entl
 		zBeforeByteTmp[1] = uid
-		zBeforeByteTmp[2] = sm2P256.zaBeforeByte
+		zBeforeByteTmp[2] = zaBeforeByte
 		zBeforeByte = bytes.Join(zBeforeByteTmp, nil)
 	}
 	x := big2Bytes(pub.X)

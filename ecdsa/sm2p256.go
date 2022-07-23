@@ -31,13 +31,13 @@ import (
 type sm2P256Curve struct {
 	RInverse *big.Int
 	*elliptic.CurveParams
-	a, b, gx, gy        sm2P256FieldElement
-	defaultZaBeforeByte []byte
-	zaBeforeByte        []byte
+	a, b, gx, gy sm2P256FieldElement
 }
 
 var initonce sync.Once   // 标记它所调用的函数只执行一次
 var sm2P256 sm2P256Curve // P256系统参数结构体
+var defaultZaBeforeByte []byte
+var zaBeforeByte []byte
 
 type sm2P256FieldElement [9]uint32
 type sm2P256LargeFieldElement [17]uint64
@@ -64,8 +64,8 @@ func initP256Sm2() {
 	sm2P256FromBig(&sm2P256.gx, sm2P256.Gx)
 	sm2P256FromBig(&sm2P256.gy, sm2P256.Gy)
 	sm2P256FromBig(&sm2P256.b, sm2P256.B)
-	sm2P256.defaultZaBeforeByte = getZBefore([]byte(defaultUid))
-	sm2P256.zaBeforeByte = getZBefore(nil)
+	defaultZaBeforeByte = getZBefore([]byte(defaultUid))
+	zaBeforeByte = getZBefore(nil)
 }
 
 // SM2 初始化SM2系统参数 只执行一次
@@ -1106,7 +1106,7 @@ func getZ(pub *PublicKey, uid []byte) ([]byte, error) {
 	uidLen := len(uid)
 	var zBeforeByte []byte
 	if uidLen == 0 {
-		zBeforeByte = sm2P256.defaultZaBeforeByte
+		zBeforeByte = defaultZaBeforeByte
 	} else if uidLen >= 8192 {
 		return []byte{}, errors.New("SM2: uid too large")
 	} else {
@@ -1115,7 +1115,7 @@ func getZ(pub *PublicKey, uid []byte) ([]byte, error) {
 		zBeforeByteTmp := make([][]byte, 3)
 		zBeforeByteTmp[0] = entl
 		zBeforeByteTmp[1] = uid
-		zBeforeByteTmp[2] = sm2P256.zaBeforeByte
+		zBeforeByteTmp[2] = zaBeforeByte
 		zBeforeByte = bytes.Join(zBeforeByteTmp, nil)
 	}
 	x := big2Bytes(pub.X)

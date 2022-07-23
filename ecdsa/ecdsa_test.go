@@ -49,6 +49,22 @@ func TestKeyGeneration(t *testing.T) {
 	testAllCurves(t, testKeyGeneration)
 }
 
+func TestCurve(t *testing.T) {
+	var curve elliptic.Curve = SM2()
+	switch curve {
+	case elliptic.P224():
+
+	case elliptic.P256():
+
+	case elliptic.P384():
+
+	case elliptic.P521():
+
+	case SM2():
+
+	}
+}
+
 func testKeyGeneration(t *testing.T, c elliptic.Curve) {
 	priv, err := GenerateKey(c, rand.Reader)
 	if err != nil {
@@ -61,7 +77,7 @@ func testKeyGeneration(t *testing.T, c elliptic.Curve) {
 
 func TestZa(t *testing.T) {
 	SM2()
-	sm2ZBefore := sm2P256.zaBeforeByte
+	sm2ZBefore := zaBeforeByte
 	t.Log("sm2ZBefore", sm2ZBefore, "\nbyte len", len(sm2ZBefore))
 	sm2ZBeforeHex := hex.EncodeToString(sm2ZBefore)
 	t.Log("sm2ZBeforeHex", sm2ZBeforeHex, "\nsm2ZBeforeHex len", len(sm2ZBeforeHex))
@@ -69,8 +85,7 @@ func TestZa(t *testing.T) {
 	t.Log("zBefore", zBefore, "\nzBefore len", len(zBefore))
 	zBeforeHex := hex.EncodeToString(zBefore)
 	t.Log("zBeforeHex", zBeforeHex, "\nzBeforeHex len", len(zBeforeHex))
-
-	sm2DefaultZBefore := sm2P256.defaultZaBeforeByte
+	sm2DefaultZBefore := defaultZaBeforeByte
 	t.Log("sm2DefaultZBefore", sm2DefaultZBefore, "\nbyte len", len(sm2DefaultZBefore))
 	sm2DefaultZBeforeHex := hex.EncodeToString(sm2DefaultZBefore)
 	t.Log("sm2DefaultZBeforeHex", sm2DefaultZBeforeHex, "\nsm2DefaultZBeforeHex len", len(sm2DefaultZBeforeHex))
