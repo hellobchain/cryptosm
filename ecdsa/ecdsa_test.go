@@ -59,6 +59,42 @@ func testKeyGeneration(t *testing.T, c elliptic.Curve) {
 	}
 }
 
+func TestZa(t *testing.T) {
+	SM2()
+	sm2ZBefore := sm2P256.zaBeforeByte
+	t.Log("sm2ZBefore", sm2ZBefore, "\nbyte len", len(sm2ZBefore))
+	sm2ZBeforeHex := hex.EncodeToString(sm2ZBefore)
+	t.Log("sm2ZBeforeHex", sm2ZBeforeHex, "\nsm2ZBeforeHex len", len(sm2ZBeforeHex))
+	zBefore := getZBefore(nil)
+	t.Log("zBefore", zBefore, "\nzBefore len", len(zBefore))
+	zBeforeHex := hex.EncodeToString(zBefore)
+	t.Log("zBeforeHex", zBeforeHex, "\nzBeforeHex len", len(zBeforeHex))
+
+	sm2DefaultZBefore := sm2P256.defaultZaBeforeByte
+	t.Log("sm2DefaultZBefore", sm2DefaultZBefore, "\nbyte len", len(sm2DefaultZBefore))
+	sm2DefaultZBeforeHex := hex.EncodeToString(sm2DefaultZBefore)
+	t.Log("sm2DefaultZBeforeHex", sm2DefaultZBeforeHex, "\nsm2DefaultZBeforeHex len", len(sm2DefaultZBeforeHex))
+	DefaultzBefore := getZBefore([]byte(defaultUid))
+	t.Log("DefaultzBefore", DefaultzBefore, "\nDefaultzBefore len", len(DefaultzBefore))
+	DefaultzBeforeHex := hex.EncodeToString(DefaultzBefore)
+	t.Log("DefaultzBeforeHex", DefaultzBeforeHex, "\nDefaultzBeforeHex len", len(DefaultzBeforeHex))
+}
+
+func TestE(t *testing.T) {
+	SM2()
+	puk := &PublicKey{
+		Curve: sm2P256,
+		X:     sm2P256.Gx,
+		Y:     sm2P256.Gy,
+	}
+	e, err := getE(puk, nil, []byte(defaultUid))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("ret", hex.EncodeToString(e.Bytes()))
+}
+
 func TestSignAndVerify(t *testing.T) {
 	testAllCurves(t, testSignAndVerify)
 }

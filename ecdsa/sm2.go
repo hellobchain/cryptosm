@@ -1,6 +1,3 @@
-//go:build amd64
-// +build amd64
-
 /*
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,7 +27,10 @@ func sm2SignGeneric(priv *PrivateKey, csprng *cipher.StreamReader, c elliptic.Cu
 		return nil, nil, errZeroParam
 	}
 	var k *big.Int
-	e := new(big.Int).SetBytes(hash)
+	e, err := getE(&priv.PublicKey, nil, hash)
+	if err != nil {
+		return nil, nil, err
+	}
 	for { // 调整算法细节以实现SM2
 		for {
 			k, err = randFieldElement(c, csprng)
@@ -92,7 +92,10 @@ func sm2VerifyGeneric(pub *PublicKey, c elliptic.Curve, hash []byte, r, s *big.I
 		x, _ = c.Add(x1, y1, x2, y2)
 	}
 
-	e := new(big.Int).SetBytes(hash)
+	e, err := getE(pub, nil, hash)
+	if err != nil {
+		return false
+	}
 	x.Add(x, e)
 	x.Mod(x, N)
 	return x.Cmp(r) == 0

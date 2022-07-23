@@ -18,7 +18,11 @@ limitations under the License.
 package ecdsa
 
 import (
+	"bytes"
 	"crypto/elliptic"
+	"encoding/binary"
+	"errors"
+	"github.com/wsw365904/cryptosm/sm3"
 	"math/big"
 	"sync"
 )
@@ -27,7 +31,9 @@ import (
 type sm2P256Curve struct {
 	RInverse *big.Int
 	*elliptic.CurveParams
-	a, b, gx, gy sm2P256FieldElement
+	a, b, gx, gy        sm2P256FieldElement
+	defaultZaBeforeByte []byte
+	zaBeforeByte        []byte
 }
 
 var initonce sync.Once   // 标记它所调用的函数只执行一次
@@ -58,20 +64,22 @@ func initP256Sm2() {
 	sm2P256FromBig(&sm2P256.gx, sm2P256.Gx)
 	sm2P256FromBig(&sm2P256.gy, sm2P256.Gy)
 	sm2P256FromBig(&sm2P256.b, sm2P256.B)
+	sm2P256.defaultZaBeforeByte = getZBefore([]byte(defaultUid))
+	sm2P256.zaBeforeByte = getZBefore(nil)
 }
 
-// 初始化SM2系统参数 只执行一次
+// SM2 初始化SM2系统参数 只执行一次
 func SM2() elliptic.Curve {
 	initonce.Do(initP256Sm2)
 	return sm2P256
 }
 
-// 获得系统参数
+// Params 获得系统参数
 func (curve sm2P256Curve) Params() *elliptic.CurveParams {
 	return sm2P256.CurveParams
 }
 
-// y^2 = x^3 + ax + b 判断坐标是否在曲线上
+// IsOnCurve y^2 = x^3 + ax + b 判断坐标是否在曲线上
 func (curve sm2P256Curve) IsOnCurve(X, Y *big.Int) bool {
 	var a, x, y, y2, x3 sm2P256FieldElement
 
@@ -97,7 +105,7 @@ func zForAffine(x, y *big.Int) *big.Int {
 	return z
 }
 
-// 点加
+// Add 点加
 func (curve sm2P256Curve) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int) {
 	var X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3 sm2P256FieldElement
 
@@ -113,7 +121,7 @@ func (curve sm2P256Curve) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int) {
 	return sm2P256ToAffine(&X3, &Y3, &Z3)
 }
 
-// 倍点
+// Double 倍点
 func (curve sm2P256Curve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
 	var X1, Y1, Z1 sm2P256FieldElement
 
@@ -125,7 +133,7 @@ func (curve sm2P256Curve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
 	return sm2P256ToAffine(&X1, &Y1, &Z1)
 }
 
-// 标量乘 计算[k](x,y)
+// ScalarMult 标量乘 计算[k](x,y)
 func (curve sm2P256Curve) ScalarMult(x1, y1 *big.Int, k []byte) (*big.Int, *big.Int) {
 	var scalarReversed [32]byte
 	var X, Y, Z, X1, Y1 sm2P256FieldElement
@@ -137,7 +145,7 @@ func (curve sm2P256Curve) ScalarMult(x1, y1 *big.Int, k []byte) (*big.Int, *big.
 	return sm2P256ToAffine(&X, &Y, &Z)
 }
 
-// 标量乘 计算[k](Gx,Gy)
+// ScalarBaseMult 标量乘 计算[k](Gx,Gy)
 func (curve sm2P256Curve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) {
 	var scalarReversed [32]byte
 	var X, Y, Z sm2P256FieldElement
@@ -1041,5 +1049,86 @@ func sm2P256ToBig(X *sm2P256FieldElement) *big.Int {
 	}
 	r.Mul(r, sm2P256.RInverse)
 	r.Mod(r, sm2P256.P)
+	return r
+}
+
+func getE(pub *PublicKey, uid []byte, msg []byte) (*big.Int, error) {
+	z, err := getZ(pub, uid)
+	if err != nil {
+		return nil, err
+	}
+	return msgHash(z, msg), nil
+}
+
+func msgHash(za, msg []byte) *big.Int {
+	eHashed := make([][]byte, 2)
+	eHashed[0] = za
+	eHashed[1] = msg
+	return new(big.Int).SetBytes(sm3.Sm3Sum(bytes.Join(eHashed, nil))[:32])
+}
+func getZBefore(uidValue []byte) []byte {
+	uidValueLen := len(uidValue)
+	var entl []byte
+	var zHashedLen int
+	if uidValueLen != 0 {
+		zHashedLen = 6
+		entl = make([]byte, 2)
+		binary.BigEndian.PutUint16(entl, uint16(uidValueLen*8))
+	} else {
+		zHashedLen = 4
+		entl = nil
+	}
+	a := sm2P256ToBig(&sm2P256.a).Bytes() // a = p-3
+	b := sm2P256.B.Bytes()
+	xG := sm2P256.Gx.Bytes()
+	yG := sm2P256.Gy.Bytes()
+	zHashed := make([][]byte, zHashedLen)
+	if zHashedLen == 4 {
+		zHashed[0] = a
+		zHashed[1] = b
+		zHashed[2] = xG
+		zHashed[3] = yG
+	} else {
+		zHashed[0] = entl
+		zHashed[1] = uidValue
+		zHashed[2] = a
+		zHashed[3] = b
+		zHashed[4] = xG
+		zHashed[5] = yG
+	}
+	return bytes.Join(zHashed, nil)
+}
+
+const defaultUid = "1234567812345678"
+
+// Z = H256(ENTLA || IDA || a || b || xG || yG || xA || yA)
+func getZ(pub *PublicKey, uid []byte) ([]byte, error) {
+	uidLen := len(uid)
+	var zBeforeByte []byte
+	if uidLen == 0 {
+		zBeforeByte = sm2P256.defaultZaBeforeByte
+	} else if uidLen >= 8192 {
+		return []byte{}, errors.New("SM2: uid too large")
+	} else {
+		entl := make([]byte, 2)
+		binary.BigEndian.PutUint16(entl, uint16(uidLen*8))
+		zBeforeByteTmp := make([][]byte, 3)
+		zBeforeByteTmp[0] = entl
+		zBeforeByteTmp[1] = uid
+		zBeforeByteTmp[2] = sm2P256.zaBeforeByte
+		zBeforeByte = bytes.Join(zBeforeByteTmp, nil)
+	}
+	x := big2Bytes(pub.X)
+	y := big2Bytes(pub.Y)
+	zHashed := make([][]byte, 3)
+	zHashed[0] = zBeforeByte
+	zHashed[1] = x
+	zHashed[2] = y
+	return sm3.Sm3Sum(bytes.Join(zHashed, nil)), nil
+}
+func big2Bytes(big *big.Int) []byte {
+	r := make([]byte, 32)
+	bigBytes := big.Bytes()
+	copy(r[32-len(bigBytes):], bigBytes)
 	return r
 }

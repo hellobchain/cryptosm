@@ -4,7 +4,11 @@
 package ecdsa
 
 import (
+	"bytes"
 	"crypto/elliptic"
+	"encoding/binary"
+	"errors"
+	"github.com/wsw365904/cryptosm/sm3"
 	"math/big"
 	"sync"
 )
@@ -12,6 +16,8 @@ import (
 type (
 	sm2Curve struct {
 		*elliptic.CurveParams
+		defaultZaBeforeByte []byte
+		zaBeforeByte        []byte
 	}
 
 	sm2Point struct {
@@ -20,7 +26,7 @@ type (
 )
 
 var (
-	sm2               sm2Curve
+	sm2P256           sm2Curve
 	sm2Precomputed    *[43][32 * 8]uint64
 	sm2precomputeOnce sync.Once
 )
@@ -30,14 +36,99 @@ const (
 )
 
 func initSM2() {
-	sm2.CurveParams = &elliptic.CurveParams{Name: SM2CurveName}
-	sm2.P, _ = new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF", 16)
-	sm2.N, _ = new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFF7203DF6B21C6052B53BBF40939D54123", 16)
-	sm2.B, _ = new(big.Int).SetString("28E9FA9E9D9F5E344D5A9E4BCF6509A7F39789F515AB8F92DDBCBD414D940E93", 16)
-	sm2.Gx, _ = new(big.Int).SetString("32C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7", 16)
-	sm2.Gy, _ = new(big.Int).SetString("BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0", 16)
-	sm2.BitSize = 256
+	sm2P256.CurveParams = &elliptic.CurveParams{Name: SM2CurveName}
+	sm2P256.P, _ = new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF", 16)
+	sm2P256.N, _ = new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFF7203DF6B21C6052B53BBF40939D54123", 16)
+	sm2P256.B, _ = new(big.Int).SetString("28E9FA9E9D9F5E344D5A9E4BCF6509A7F39789F515AB8F92DDBCBD414D940E93", 16)
+	sm2P256.Gx, _ = new(big.Int).SetString("32C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7", 16)
+	sm2P256.Gy, _ = new(big.Int).SetString("BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0", 16)
+	sm2P256.BitSize = 256
+	sm2P256.zaBeforeByte = getZBefore(nil)
+	sm2P256.defaultZaBeforeByte = getZBefore([]byte(defaultUid))
 	return
+}
+
+func big2Bytes(big *big.Int) []byte {
+	r := make([]byte, 32)
+	bigBytes := big.Bytes()
+	copy(r[32-len(bigBytes):], bigBytes)
+	return r
+}
+
+const defaultUid = "1234567812345678"
+
+func msgHash(za, msg []byte) *big.Int {
+	eHashed := make([][]byte, 2)
+	eHashed[0] = za
+	eHashed[1] = msg
+	return new(big.Int).SetBytes(sm3.Sm3Sum(bytes.Join(eHashed, nil))[:32])
+}
+
+func getE(pub *PublicKey, uid []byte, msg []byte) (*big.Int, error) {
+	za, err := getZ(pub, uid)
+	if err != nil {
+		return nil, err
+	}
+	return msgHash(za, msg), nil
+}
+
+func getZBefore(uidValue []byte) []byte {
+	uidValudeLen := len(uidValue)
+	var entl []byte
+	var zHashedLen int
+	if uidValudeLen != 0 {
+		zHashedLen = 6
+		entl = make([]byte, 2)
+		binary.BigEndian.PutUint16(entl, uint16(uidValudeLen*8))
+	} else {
+		zHashedLen = 4
+		entl = nil
+	}
+	a := big2Bytes(new(big.Int).Sub(sm2P256.Params().P, new(big.Int).SetInt64(3))) // a = p-3
+	b := big2Bytes(sm2P256.Params().B)
+	xG := big2Bytes(sm2P256.Params().Gx)
+	yG := big2Bytes(sm2P256.Params().Gy)
+	zHashed := make([][]byte, zHashedLen)
+	if zHashedLen == 4 {
+		zHashed[0] = a
+		zHashed[1] = b
+		zHashed[2] = xG
+		zHashed[3] = yG
+	} else {
+		zHashed[0] = entl
+		zHashed[1] = uidValue
+		zHashed[2] = a
+		zHashed[3] = b
+		zHashed[4] = xG
+		zHashed[5] = yG
+	}
+	return bytes.Join(zHashed, nil)
+}
+
+// Z = H256(ENTLA || IDA || a || b || xG || yG || xA || yA)
+func getZ(pub *PublicKey, uid []byte) ([]byte, error) {
+	uidLen := len(uid)
+	var zBeforeByte []byte
+	if uidLen == 0 {
+		zBeforeByte = sm2P256.defaultZaBeforeByte
+	} else if uidLen >= 8192 {
+		return []byte{}, errors.New("SM2: uid too large")
+	} else {
+		entl := make([]byte, 2)
+		binary.BigEndian.PutUint16(entl, uint16(uidLen*8))
+		zBeforeByteTmp := make([][]byte, 3)
+		zBeforeByteTmp[0] = entl
+		zBeforeByteTmp[1] = uid
+		zBeforeByteTmp[2] = sm2P256.zaBeforeByte
+		zBeforeByte = bytes.Join(zBeforeByteTmp, nil)
+	}
+	x := big2Bytes(pub.X)
+	y := big2Bytes(pub.Y)
+	zHashed := make([][]byte, 3)
+	zHashed[0] = zBeforeByte
+	zHashed[1] = x
+	zHashed[2] = y
+	return sm3.Sm3Sum(bytes.Join(zHashed, nil)), nil
 }
 
 func (curve sm2Curve) Params() *elliptic.CurveParams {
@@ -110,9 +201,9 @@ func (curve sm2Curve) Inverse(k *big.Int) *big.Int {
 		k = new(big.Int).Neg(k)
 	}
 
-	if k.Cmp(sm2.N) >= 0 {
+	if k.Cmp(sm2P256.N) >= 0 {
 		// This should never happen.
-		k = new(big.Int).Mod(k, sm2.N)
+		k = new(big.Int).Mod(k, sm2P256.N)
 	}
 
 	// table will store precomputed powers of x. The four words at index
@@ -207,8 +298,8 @@ func fromBig(out []uint64, big *big.Int) {
 func sm2GetScalar(out []uint64, in []byte) {
 	n := new(big.Int).SetBytes(in)
 
-	if n.Cmp(sm2.N) >= 0 {
-		n.Mod(n, sm2.N)
+	if n.Cmp(sm2P256.N) >= 0 {
+		n.Mod(n, sm2P256.N)
 	}
 	fromBig(out, n)
 }
@@ -219,10 +310,10 @@ func sm2GetScalar(out []uint64, in []byte) {
 var sm2rr = []uint64{0x0000000200000003, 0x00000002ffffffff, 0x0000000100000001, 0x0000000400000002}
 
 func maybeReduceModP(in *big.Int) *big.Int {
-	if in.Cmp(sm2.P) < 0 {
+	if in.Cmp(sm2P256.P) < 0 {
 		return in
 	}
-	return new(big.Int).Mod(in, sm2.P)
+	return new(big.Int).Mod(in, sm2P256.P)
 }
 
 func (curve sm2Curve) CombinedMult(bigX, bigY *big.Int, baseScalar, scalar []byte) (x, y *big.Int) {
@@ -606,5 +697,5 @@ var initOnce sync.Once
 // The cryptographic operations are implemented using constant-time algorithms.
 func SM2() elliptic.Curve {
 	initOnce.Do(initSM2)
-	return sm2
+	return sm2P256
 }
