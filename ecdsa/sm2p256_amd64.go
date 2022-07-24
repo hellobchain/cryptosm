@@ -73,13 +73,13 @@ func getE(pub *PublicKey, uid []byte, msg []byte) (*big.Int, error) {
 }
 
 func getZBefore(uidValue []byte) []byte {
-	uidValudeLen := len(uidValue)
+	uidValueLen := len(uidValue)
 	var entl []byte
 	var zHashedLen int
-	if uidValudeLen != 0 {
+	if uidValueLen != 0 {
 		zHashedLen = 6
 		entl = make([]byte, 2)
-		binary.BigEndian.PutUint16(entl, uint16(uidValudeLen*8))
+		binary.BigEndian.PutUint16(entl, uint16(uidValueLen*8))
 	} else {
 		zHashedLen = 4
 		entl = nil

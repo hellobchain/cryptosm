@@ -19,11 +19,11 @@ import (
 	"hash"
 )
 
-// SM3结构体定义
+// SM3 SM3结构体定义
 type SM3 struct {
-	digest      [8]uint32 // digest represents the partial evaluation of V
-	length      uint64    // length of the message
-	unhandleMsg []byte    // uint8  //
+	digest       [8]uint32 // digest represents the partial evaluation of V
+	length       uint64    // length of the message
+	unhandledMsg []byte    // uint8  //
 }
 
 func (sm3 *SM3) ff0(x, y, z uint32) uint32 { return x ^ y ^ z }
@@ -38,11 +38,11 @@ func (sm3 *SM3) p0(x uint32) uint32 { return x ^ sm3.leftRotate(x, 9) ^ sm3.left
 
 func (sm3 *SM3) p1(x uint32) uint32 { return x ^ sm3.leftRotate(x, 15) ^ sm3.leftRotate(x, 23) }
 
-func (sm3 *SM3) leftRotate(x uint32, i uint32) uint32 { return (x<<(i%32) | x>>(32-i%32)) }
+func (sm3 *SM3) leftRotate(x uint32, i uint32) uint32 { return x<<(i%32) | x>>(32-i%32) }
 
 //生成msg扩展
 func (sm3 *SM3) pad() []byte {
-	msg := sm3.unhandleMsg
+	msg := sm3.unhandledMsg
 	msg = append(msg, 0x80) // Append '1'
 	blockSize := 64         // Append until the resulting message length (in bits) is congruent to 448 (mod 512)
 	for len(msg)%blockSize != 56 {
@@ -64,7 +64,7 @@ func (sm3 *SM3) pad() []byte {
 	return msg
 }
 
-func (sm3 *SM3) update(msg []byte, nblocks int) {
+func (sm3 *SM3) update(msg []byte) {
 	var w [68]uint32
 	var w1 [64]uint32
 
@@ -122,19 +122,17 @@ func (sm3 *SM3) update(msg []byte, nblocks int) {
 }
 
 func New() hash.Hash {
-	sm3:= new(SM3)
+	sm3 := new(SM3)
 	sm3.Reset()
 	return sm3
 }
 
-// BlockSize, required by the hash.Hash interface.
 // BlockSize returns the hash's underlying block size.
 // The Write method must be able to accept any amount
 // of data, but it may operate more efficiently if all writes
 // are a multiple of the block size.
 func (sm3 *SM3) BlockSize() int { return 64 }
 
-// Size, required by the hash.Hash interface.
 // Size returns the number of bytes Sum will return.
 func (sm3 *SM3) Size() int { return 32 }
 
@@ -152,7 +150,7 @@ func (sm3 *SM3) Reset() {
 	sm3.digest[7] = 0xb0fb0e4e
 
 	sm3.length = 0 // Reset numberic states
-	sm3.unhandleMsg = []byte{}
+	sm3.unhandledMsg = []byte{}
 }
 
 // Write, required by the hash.Hash interface.
@@ -162,25 +160,24 @@ func (sm3 *SM3) Write(p []byte) (int, error) {
 	toWrite := len(p)
 	sm3.length += uint64(len(p) * 8)
 
-	msg := append(sm3.unhandleMsg, p...)
-	nblocks := len(msg) / sm3.BlockSize()
-	sm3.update(msg, nblocks)
+	msg := append(sm3.unhandledMsg, p...)
+	unblocks := len(msg) / sm3.BlockSize()
+	sm3.update(msg)
 
-	// Update unhandleMsg
-	sm3.unhandleMsg = msg[nblocks*sm3.BlockSize():]
+	// Update unhandledMsg
+	sm3.unhandledMsg = msg[unblocks*sm3.BlockSize():]
 
 	return toWrite, nil
 }
 
-// Sum, required by the hash.Hash interface.
 // Sum appends the current hash to b and returns the resulting slice.
 // It does not change the underlying hash state.
 func (sm3 *SM3) Sum(in []byte) []byte {
-	sm3.Write(in)
+	_, _ = sm3.Write(in)
 	msg := sm3.pad()
 
-	// Finialize
-	sm3.update(msg, len(msg)/sm3.BlockSize())
+	// Finalize
+	sm3.update(msg)
 
 	// save hash to in
 	needed := sm3.Size()
@@ -198,10 +195,10 @@ func (sm3 *SM3) Sum(in []byte) []byte {
 
 }
 
-// SM3哈希运算
+// Sm3Sum SM3哈希运算
 func Sm3Sum(data []byte) []byte {
 	sm3 := new(SM3)
-	sm3.Reset()// SM3初始化
-	sm3.Write(data)// SM3的Update
-	return sm3.Sum(nil)// SM3的Final
+	sm3.Reset()            // SM3初始化
+	_, _ = sm3.Write(data) // SM3的Update
+	return sm3.Sum(nil)    // SM3的Final
 }

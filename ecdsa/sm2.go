@@ -14,7 +14,7 @@ limitations under the License.
 
 package ecdsa
 
-// reference to ecdsa
+// reference to sm2
 import (
 	"crypto/cipher"
 	"crypto/elliptic"
@@ -51,15 +51,15 @@ func sm2SignGeneric(priv *PrivateKey, csprng *cipher.StreamReader, c elliptic.Cu
 		rD := new(big.Int).Mul(priv.D, r)   //r*D
 		s = new(big.Int).Sub(k, rD)         //k-r*D
 		d1 := new(big.Int).Add(priv.D, one) //D+1
-		//(D+1)^-1
+		// (D+1)^-1
 		var d1Inv *big.Int
 		if in, ok := priv.Curve.(invertible); ok {
 			d1Inv = in.Inverse(d1)
 		} else {
 			d1Inv = fermatInverse(d1, N) // N != 0
 		}
-		s.Mul(s, d1Inv) //s*d1Inv
-		s.Mod(s, N)     //(s*d1Inv)mod N
+		s.Mul(s, d1Inv) // s*d1Inv
+		s.Mod(s, N)     // (s*d1Inv)mod N
 		if s.Sign() != 0 {
 			break
 		}

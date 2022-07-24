@@ -21,11 +21,11 @@ import (
 
 const BlockSize = 16
 
-type SM4Key []byte
+type Sm4Key []byte
 
 type KeySizeError int
 
-// Cipher is an instance of SM4 encryption.
+// Sm4Cipher is an instance of SM4 encryption.
 type Sm4Cipher struct {
 	subkeys []uint32
 	block1  []uint32
@@ -251,7 +251,7 @@ func generateSubKeys(key []byte) []uint32 {
  *@param dst 128bits crypto text
  *@return void
  */
-func EncryptBlock(key SM4Key, dst, src []byte) {
+func EncryptBlock(key Sm4Key, dst, src []byte) {
 	subkeys := generateSubKeys(key)
 	cryptBlock(subkeys, make([]uint32, 4), make([]byte, 16), dst, src, false)
 }
@@ -263,7 +263,7 @@ func EncryptBlock(key SM4Key, dst, src []byte) {
  *@param dst 128bits plain text
  *@return void
  */
-func DecryptBlock(key SM4Key, dst, src []byte) {
+func DecryptBlock(key Sm4Key, dst, src []byte) {
 	subkeys := generateSubKeys(key)
 	cryptBlock(subkeys, make([]uint32, 4), make([]byte, 16), dst, src, true)
 }

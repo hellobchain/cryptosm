@@ -350,12 +350,12 @@ func testNegativeInputs(t *testing.T, curve elliptic.Curve) {
 		t.Errorf("failed to generate key")
 	}
 
-	var hash [32]byte
+	var bytes [32]byte
 	r := new(big.Int).SetInt64(1)
 	r.Lsh(r, 550 /* larger than any supported curve */)
 	r.Neg(r)
 
-	if Verify(&key.PublicKey, hash[:], r, r) {
+	if Verify(&key.PublicKey, bytes[:], r, r) {
 		t.Errorf("bogus signature accepted")
 	}
 }
