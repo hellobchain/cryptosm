@@ -699,6 +699,7 @@ func (c *Conn) readRecordOrCCS(expectChangeCipherSpec bool) error {
 			// Drop the record on the floor and retry.
 			return c.retryReadRecord(expectChangeCipherSpec)
 		case alertLevelError:
+			fmt.Println("wsw12")
 			return c.in.setErrorLocked(&net.OpError{Op: "remote error", Err: alert(data[1])})
 		default:
 			return c.in.setErrorLocked(c.sendAlert(alertUnexpectedMessage))

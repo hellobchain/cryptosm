@@ -350,7 +350,6 @@ func (hs *serverHandshakeState) pickCipherSuite() error {
 			}
 		}
 	}
-
 	hs.suite = selectCipherSuite(preferenceList, hs.clientHello.cipherSuites, hs.cipherSuiteOk)
 	if hs.suite == nil {
 		c.sendAlert(alertHandshakeFailure)
@@ -384,15 +383,12 @@ func (hs *serverHandshakeState) cipherSuiteOk(c *cipherSuite) bool {
 		} else if !hs.rsaSignOk {
 			return false
 		}
-		if c.flags&suiteSM2 != 0 {
-			if !hs.sm2SignOk {
-				return false
-			}
+	} else if c.flags&suiteSM2E != 0 {
+		if !hs.ecdheOk {
+			return false
 		}
-		if c.flags&suiteSM2E != 0 {
-			if !hs.sm2SignOk {
-				return false
-			}
+		if !hs.sm2SignOk {
+			return false
 		}
 	} else if !hs.rsaDecryptOk {
 		return false
