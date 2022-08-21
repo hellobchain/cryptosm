@@ -891,8 +891,9 @@ func checkSignature(algo SignatureAlgorithm, signed, signature []byte, publicKey
 				if !ecdsa.VerifyASN1(pub, tmpSigned, signature) {
 					return errors.New("x509: second SM2 verification failure")
 				}
+			} else {
+				return errors.New("x509: ECDSA SM2 verification failure")
 			}
-			return errors.New("x509: ECDSA SM2 verification failure")
 		}
 		return
 	case ed25519.PublicKey:
