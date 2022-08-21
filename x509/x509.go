@@ -855,7 +855,7 @@ func checkSignature(algo SignatureAlgorithm, signed, signature []byte, publicKey
 			pubKeyAlgo = details.pubKeyAlgo
 		}
 	}
-
+	tmpSigned := signed
 	switch hashType {
 	case cryptosm.Hash(0):
 		if pubKeyAlgo != Ed25519 {
@@ -887,6 +887,11 @@ func checkSignature(algo SignatureAlgorithm, signed, signature []byte, publicKey
 			return signaturePublicKeyAlgoMismatchError(pubKeyAlgo, pub)
 		}
 		if !ecdsa.VerifyASN1(pub, signed, signature) {
+			if pubKeyAlgo == SM2 {
+				if !ecdsa.VerifyASN1(pub, tmpSigned, signature) {
+					return errors.New("x509: second SM2 verification failure")
+				}
+			}
 			return errors.New("x509: ECDSA SM2 verification failure")
 		}
 		return
